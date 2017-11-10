@@ -31,8 +31,10 @@ trainer = train.Trainer(S_DIM, A_DIM, A_MAX, ram)
 for _ep in range(MAX_EPISODES):
 	observation = env.reset()
 	print 'EPISODE :- ', _ep
+        episodeR = 0
 	for r in range(MAX_STEPS):
-		env.render()
+                if not _ep%20:
+                        env.render()
 		state = np.float32(observation)
 
 		action = trainer.get_exploration_action(state)
@@ -43,8 +45,8 @@ for _ep in range(MAX_EPISODES):
 		# 	# get action based on observation, use exploration policy here
 		# 	action = trainer.get_exploration_action(state)
 
-		new_observation, reward, done, info = env.step(action)
-
+		new_observation, reward, done, info = env.step(np.squeeze(action))
+                episodeR += reward
 		# # dont update if this is validation
 		# if _ep%50 == 0 or _ep>450:
 		# 	continue
@@ -63,13 +65,14 @@ for _ep in range(MAX_EPISODES):
 		if done:
 			break
 
+        print episodeR
 	# check memory consumption and clear memory
 	gc.collect()
 	# process = psutil.Process(os.getpid())
 	# print(process.memory_info().rss)
 
-	if _ep%100 == 0:
-		trainer.save_models(_ep)
+	# if _ep%100 == 0:
+	# 	trainer.save_models(_ep)
 
 
 print 'Completed episodes'
