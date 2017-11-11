@@ -44,13 +44,17 @@ class Trainer:
 		utils.hard_update(self.target_actor, self.actor)
 		utils.hard_update(self.target_critic, self.critic)
 
+        def update_targets(self):
+		utils.soft_update(self.target_actor, self.actor, TAU)
+		utils.soft_update(self.target_critic, self.critic, TAU)
+
 	def get_exploitation_action(self, state):
 		"""
 		gets the action from target actor added with exploration noise
 		:param state: state (Numpy array)
 		:return: sampled action (Numpy array)
 		"""
-		state = Variable(torch.from_numpy(state))
+		state = Variable(torch.from_numpy(state).unsqueeze(0))
 		action = self.target_actor.forward(state).detach()
 		return action.data.numpy()
 
@@ -98,8 +102,7 @@ class Trainer:
 		loss_actor.backward()
 		self.actor_optimizer.step()
 
-		utils.soft_update(self.target_actor, self.actor, TAU)
-		utils.soft_update(self.target_critic, self.critic, TAU)
+                self.update_targets()
 
 		# if self.iter % 100 == 0:
 		# 	print 'Iteration :- ', self.iter, ' Loss_actor :- ', loss_actor.data.numpy(),\
@@ -127,3 +130,18 @@ class Trainer:
 		utils.hard_update(self.target_actor, self.actor)
 		utils.hard_update(self.target_critic, self.critic)
 		print 'Models loaded succesfully'
+
+class Trainer_NoActorTarget(Trainer):
+        def update_targets(self):
+		utils.hard_update(self.target_actor, self.actor)
+		utils.soft_update(self.target_critic, self.critic, TAU)
+
+class Trainer_NoCriticTarget(Trainer):
+        def update_targets(self):
+		utils.soft_update(self.target_actor, self.actor, TAU)
+		utils.hard_update(self.target_critic, self.critic)
+
+class Trainer_NoTargetNetworks(Trainer):
+        def update_targets(self):
+		utils.hard_update(self.target_actor, self.actor)
+		utils.hard_update(self.target_critic, self.critic)
